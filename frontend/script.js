@@ -7,6 +7,7 @@ const taskStatusSelect = document.getElementById('task-status');
 const submitButton = document.getElementById('submit-button');
 const cancelEditButton = document.getElementById('cancel-edit');
 const taskFormTitle = document.getElementById('form-title');
+const statusPill = document.querySelector('.status-pill');
 const tasksContainer = document.getElementById('tasks-container');
 const totalCount = document.getElementById('total-count');
 const pendingCount = document.getElementById('pending-count');
@@ -14,6 +15,12 @@ const doneCount = document.getElementById('done-count');
 const taskCardTemplate = document.getElementById('task-card-template');
 
 let editingTaskId = null;
+
+const setConnectionStatus = (isOnline) => {
+  statusPill.textContent = isOnline ? 'Online' : 'Offline';
+  statusPill.classList.toggle('online', isOnline);
+  statusPill.classList.toggle('offline', !isOnline);
+};
 
 const formatDate = (value) => {
   if (!value) return 'Sem data';
@@ -95,8 +102,10 @@ const fetchTasks = async () => {
     }
 
     const tasks = await response.json();
+    setConnectionStatus(true);
     renderTasks(tasks);
   } catch (error) {
+    setConnectionStatus(false);
     tasksContainer.innerHTML = `
       <div class="empty-state">
         <p>Não foi possível carregar as tarefas.<br />Verifique a API do backend.</p>
@@ -204,4 +213,9 @@ form.addEventListener('submit', async (event) => {
 
 cancelEditButton.addEventListener('click', resetForm);
 
+setConnectionStatus(true);
 fetchTasks();
+
+setInterval(() => {
+  fetchTasks();
+}, 5000);
