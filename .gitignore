@@ -29,6 +29,9 @@ Thumbs.db
 *.swp
 *.swo
 
+# Pasta local do usuário
+Igor/
+
 # Build e temporários
 coverage/
 dist/
