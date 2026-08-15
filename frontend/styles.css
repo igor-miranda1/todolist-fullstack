@@ -181,7 +181,8 @@ h1 {
 .primary-btn,
 .secondary-btn,
 .edit-btn,
-.delete-btn {
+.delete-btn,
+.toggle-status-btn {
   border: none;
   border-radius: 12px;
   padding: 0.9rem 1.1rem;
@@ -192,7 +193,8 @@ h1 {
 .primary-btn:hover,
 .secondary-btn:hover,
 .edit-btn:hover,
-.delete-btn:hover {
+.delete-btn:hover,
+.toggle-status-btn:hover {
   transform: translateY(-1px);
 }
 
@@ -237,6 +239,11 @@ h1 {
   padding: 18px 16px;
   display: grid;
   gap: 16px;
+}
+
+.task-card.completed {
+  border-color: rgba(26, 191, 115, 0.35);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(233, 252, 242, 0.9));
 }
 
 .task-top {
@@ -300,6 +307,11 @@ h1 {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.toggle-status-btn {
+  background: rgba(26, 191, 115, 0.08);
+  color: var(--success);
 }
 
 .edit-btn {

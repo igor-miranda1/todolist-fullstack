@@ -70,13 +70,18 @@ const renderTasks = (tasks) => {
     const date = fragment.querySelector('.task-date');
     const status = fragment.querySelector('.task-status');
     const description = fragment.querySelector('.task-description');
+    const toggleButton = fragment.querySelector('.toggle-status-btn');
     const editButton = fragment.querySelector('.edit-btn');
     const deleteButton = fragment.querySelector('.delete-btn');
+
+    const isCompleted = task.status === 'concluída';
 
     title.textContent = task.title;
     date.textContent = `Criada em ${formatDate(task.created_at)}`;
     status.textContent = task.status;
     status.classList.add(task.status);
+    card.classList.toggle('completed', isCompleted);
+    toggleButton.textContent = isCompleted ? 'Marcar como pendente' : 'Marcar como concluída';
 
     if (description) {
       const descriptionText = task.description && task.description.trim() ? task.description.trim() : 'Sem descrição';
@@ -85,6 +90,7 @@ const renderTasks = (tasks) => {
 
     editButton.addEventListener('click', () => startEdit(task));
     deleteButton.addEventListener('click', () => deleteTask(task.id));
+    toggleButton.addEventListener('click', () => toggleTaskStatus(task));
 
     card.dataset.id = task.id;
     tasksContainer.appendChild(fragment);
@@ -160,6 +166,22 @@ const deleteTask = async (id) => {
   }
 
   fetchTasks();
+};
+
+const toggleTaskStatus = async (task) => {
+  const nextStatus = task.status === 'concluída' ? 'pendente' : 'concluída';
+
+  try {
+    await updateTask(task.id, {
+      title: task.title,
+      description: task.description || '',
+      status: nextStatus,
+    });
+
+    await fetchTasks();
+  } catch (error) {
+    alert(error.message);
+  }
 };
 
 const resetForm = () => {
