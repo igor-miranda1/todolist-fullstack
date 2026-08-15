@@ -42,6 +42,20 @@ const formatDate = (value) => {
 
 const normalizeStatus = (status) => (status === 'em andamento' ? 'pendente' : status || 'pendente');
 
+const setStatusOptions = (isEditingMode) => {
+  const options = Array.from(taskStatusSelect.options);
+
+  options.forEach((option) => {
+    const shouldShow = option.value !== 'em andamento' || isEditingMode;
+    option.hidden = !shouldShow;
+    option.disabled = !shouldShow;
+  });
+
+  if (!isEditingMode && !['pendente', 'concluída'].includes(taskStatusSelect.value)) {
+    taskStatusSelect.value = 'pendente';
+  }
+};
+
 const updateSummary = (tasks) => {
   const normalizedTasks = tasks.map((task) => ({ ...task, status: normalizeStatus(task.status) }));
 
@@ -203,6 +217,7 @@ const resetForm = () => {
   form.reset();
   taskDescriptionInput.value = '';
   taskStatusSelect.value = 'pendente';
+  setStatusOptions(false);
   submitButton.textContent = 'Salvar tarefa';
   taskFormTitle.textContent = 'Nova tarefa';
   cancelEditButton.classList.add('hidden');
@@ -215,6 +230,7 @@ const startEdit = (task) => {
   taskTitleInput.value = normalizedTask.title;
   taskDescriptionInput.value = normalizedTask.description || '';
   taskStatusSelect.value = normalizedTask.status;
+  setStatusOptions(true);
   taskFormTitle.textContent = 'Editar tarefa';
   submitButton.textContent = 'Atualizar tarefa';
   cancelEditButton.classList.remove('hidden');
@@ -252,6 +268,7 @@ form.addEventListener('submit', async (event) => {
 cancelEditButton.addEventListener('click', resetForm);
 
 setConnectionStatus(true);
+setStatusOptions(false);
 fetchTasks();
 
 setInterval(() => {
