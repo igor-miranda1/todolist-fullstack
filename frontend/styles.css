@@ -293,11 +293,6 @@ h1 {
   color: var(--warning);
 }
 
-.task-status.em\ andamento {
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
 .task-status.concluída {
   background: var(--success-soft);
   color: var(--success);

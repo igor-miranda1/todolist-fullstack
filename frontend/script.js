@@ -40,10 +40,14 @@ const formatDate = (value) => {
   }).format(date);
 };
 
+const normalizeStatus = (status) => (status === 'em andamento' ? 'pendente' : status || 'pendente');
+
 const updateSummary = (tasks) => {
-  totalCount.textContent = String(tasks.length);
-  pendingCount.textContent = String(tasks.filter((task) => task.status === 'pendente').length);
-  doneCount.textContent = String(tasks.filter((task) => task.status === 'concluída').length);
+  const normalizedTasks = tasks.map((task) => ({ ...task, status: normalizeStatus(task.status) }));
+
+  totalCount.textContent = String(normalizedTasks.length);
+  pendingCount.textContent = String(normalizedTasks.filter((task) => task.status === 'pendente').length);
+  doneCount.textContent = String(normalizedTasks.filter((task) => task.status === 'concluída').length);
 };
 
 const renderEmptyState = () => {
@@ -64,6 +68,7 @@ const renderTasks = (tasks) => {
   tasksContainer.innerHTML = '';
 
   tasks.forEach((task) => {
+    const normalizedTask = { ...task, status: normalizeStatus(task.status) };
     const fragment = taskCardTemplate.content.cloneNode(true);
     const card = fragment.querySelector('.task-card');
     const title = fragment.querySelector('.task-title');
@@ -74,25 +79,25 @@ const renderTasks = (tasks) => {
     const editButton = fragment.querySelector('.edit-btn');
     const deleteButton = fragment.querySelector('.delete-btn');
 
-    const isCompleted = task.status === 'concluída';
+    const isCompleted = normalizedTask.status === 'concluída';
 
-    title.textContent = task.title;
-    date.textContent = `Criada em ${formatDate(task.created_at)}`;
-    status.textContent = task.status;
-    status.classList.add(task.status);
+    title.textContent = normalizedTask.title;
+    date.textContent = `Criada em ${formatDate(normalizedTask.created_at)}`;
+    status.textContent = normalizedTask.status;
+    status.classList.add(normalizedTask.status);
     card.classList.toggle('completed', isCompleted);
     toggleButton.textContent = isCompleted ? 'Marcar como pendente' : 'Marcar como concluída';
 
     if (description) {
-      const descriptionText = task.description && task.description.trim() ? task.description.trim() : 'Sem descrição';
+      const descriptionText = normalizedTask.description && normalizedTask.description.trim() ? normalizedTask.description.trim() : 'Sem descrição';
       description.textContent = descriptionText;
     }
 
-    editButton.addEventListener('click', () => startEdit(task));
-    deleteButton.addEventListener('click', () => deleteTask(task.id));
-    toggleButton.addEventListener('click', () => toggleTaskStatus(task));
+    editButton.addEventListener('click', () => startEdit(normalizedTask));
+    deleteButton.addEventListener('click', () => deleteTask(normalizedTask.id));
+    toggleButton.addEventListener('click', () => toggleTaskStatus(normalizedTask));
 
-    card.dataset.id = task.id;
+    card.dataset.id = normalizedTask.id;
     tasksContainer.appendChild(fragment);
   });
 
@@ -148,11 +153,18 @@ const updateTask = async (id, payload) => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Erro ao atualizar tarefa' }));
-    throw new Error(errorData.error || 'Erro ao atualizar tarefa');
+    const errorData = await response.text().catch(() => '');
+    const parsed = errorData ? (() => { try { return JSON.parse(errorData); } catch { return { error: errorData }; } })() : { error: 'Erro ao atualizar tarefa' };
+    throw new Error(parsed.error || 'Erro ao atualizar tarefa');
   }
 
-  return response.json();
+  const contentType = response.headers.get('content-type') || '';
+
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+
+  return null;
 };
 
 const deleteTask = async (id) => {
@@ -161,15 +173,17 @@ const deleteTask = async (id) => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Erro ao excluir tarefa' }));
-    throw new Error(errorData.error || 'Erro ao excluir tarefa');
+    const errorData = await response.text().catch(() => '');
+    const parsed = errorData ? (() => { try { return JSON.parse(errorData); } catch { return { error: errorData }; } })() : { error: 'Erro ao excluir tarefa' };
+    throw new Error(parsed.error || 'Erro ao excluir tarefa');
   }
 
   fetchTasks();
 };
 
 const toggleTaskStatus = async (task) => {
-  const nextStatus = task.status === 'concluída' ? 'pendente' : 'concluída';
+  const currentStatus = normalizeStatus(task.status);
+  const nextStatus = currentStatus === 'concluída' ? 'pendente' : 'concluída';
 
   try {
     await updateTask(task.id, {
@@ -195,10 +209,12 @@ const resetForm = () => {
 };
 
 const startEdit = (task) => {
-  editingTaskId = task.id;
-  taskTitleInput.value = task.title;
-  taskDescriptionInput.value = task.description || '';
-  taskStatusSelect.value = task.status;
+  const normalizedTask = { ...task, status: normalizeStatus(task.status) };
+
+  editingTaskId = normalizedTask.id;
+  taskTitleInput.value = normalizedTask.title;
+  taskDescriptionInput.value = normalizedTask.description || '';
+  taskStatusSelect.value = normalizedTask.status;
   taskFormTitle.textContent = 'Editar tarefa';
   submitButton.textContent = 'Atualizar tarefa';
   cancelEditButton.classList.remove('hidden');

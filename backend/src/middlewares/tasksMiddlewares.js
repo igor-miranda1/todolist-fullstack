@@ -1,4 +1,4 @@
-const allowedStatuses = ['pendente', 'em andamento', 'concluída'];
+const allowedStatuses = ['pendente', 'concluída'];
 
 const validateFieldTitle = (request, response, next) => {
     const { title } = request.body;
@@ -28,7 +28,7 @@ const validateFieldStatus = (request, response, next) => {
     const normalizedStatus = status.trim();
 
     if (!allowedStatuses.includes(normalizedStatus)) {
-        return response.status(400).json({ error: 'Status invalid. Use: pendente, em andamento ou concluída.' });
+        return response.status(400).json({ error: 'Status invalid. Use: pendente ou concluída.' });
     }
 
     request.body.status = normalizedStatus;
